@@ -1,11 +1,60 @@
-<!doctypehtml><title>Chicken Clicker Game</title><h1>Chicken Clicker Game</h1><button id="trader-tab">Trader</button> <button id="farm-tab">Chicken Farm</button><div id="game-content"><p>Gold: <span id="gold-count">0</span><p>You have <span id="chicken-count">0</span> chickens.<p>You have <span id="cooked-chicken-count">0</span> cooked chickens.<p>Chicken Cooldown: <span id="chicken-cooldown">3.0</span> seconds<p>Cooked Chicken Sell Cooldown: <span id="sell-cooldown">3.0</span> seconds</p><button id="chicken-button">Click for a chicken</button><div id="cooked-chicken-section"style="display:none"><button id="convert-button">Convert a chicken to cooked chicken</button> <button id="sell-cooked-chickens"style="display:none">Sell all cooked chicken</button></div></div><div id="trader-content"style="display:none"><p>Reduce Cooldown for 10 Gold:</p><button id="reduce-cooldown-button">Reduce Cooldown</button><p id="cooldown-text"style="display:block">Cooldown is now at a minimum.<p>Reduce Sell Cooldown for 25 Gold:</p><button id="reduce-sell-cooldown-button">Reduce Sell Cooldown</button><p id="sell-cooldown-text"style="display:block">Sell Cooldown is now at a minimum.</div><script>let gold = 0;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chicken Clicker Game</title>
+</head>
+<body>
+<h1>Chicken Clicker Game</h1>
+
+<!-- Tab buttons -->
+<button id="trader-tab">Trader</button>
+<button id="farm-tab">Chicken Farm</button>
+<button id="changes-tab">Changes</button>
+
+<!-- Game content -->
+<div id="game-content">
+  <p>Gold: <span id="gold-count">0</span></p>
+  <p>You have <span id="chicken-count">0</span> chickens.</p>
+  <p>You have <span id="cooked-chicken-count">0</span> cooked chickens.</p>
+  <p>Chicken Cooldown: <span id="chicken-cooldown">3.0</span> seconds</p>
+  <p>Cooked Chicken Conversion Time: <span id="conversion-time">3.0</span> seconds</p>
+  <button id="chicken-button">Click for a chicken</button>
+
+  <div id="cooked-chicken-section" style="display: none;">
+    <button id="convert-button">Convert a chicken to cooked chicken</button>
+    <button id="sell-cooked-chickens" style="display: none;">Sell all cooked chicken</button>
+  </div>
+</div>
+
+<!-- Trader content -->
+<div id="trader-content" style="display: none;">
+  <p>Reduce Cooldown for 10 Gold:</p>
+  <button id="reduce-cooldown-button">Reduce Cooldown</button>
+  <p id="cooldown-text" style="display: block;">Cooldown is now at a minimum.</p>
+  <p>Reduce Conversion Time for 10 Gold:</p>
+  <button id="reduce-conversion-time-button">Reduce Conversion Time</button>
+  <p id="conversion-time-text" style="display: block;">Conversion Time is now at a minimum.</p>
+  <p>More Money: <span id="more-money-count">0/5</span></p>
+  <button id="more-money-button">Buy for 100 Gold</button>
+  <p id="more-money-text" style="display: none;">More Money upgrade has reached its limit.</p>
+</div>
+
+<!-- Changes content -->
+<div id="changes-content" style="display: none;">
+  <p>Add cooldown on cooked chickens</p>
+</div>
+
+<script>
+  let gold = 0;
   let chickenCount = 0;
   let cookedChickenCount = 0;
   let isChickenCooldown = false;
-  let isSellCooldown = false;
+  let isConversionCooldown = false;
   let chickenClickCooldown = 3000; // Initial chicken click cooldown in milliseconds (3 seconds)
-  let sellCooldown = 3000; // Initial sell cooldown in milliseconds (3 seconds)
+  let conversionCooldown = 3000; // Initial conversion cooldown in milliseconds (3 seconds)
   const minCooldown = 1000; // Minimum cooldown time in milliseconds (1 second)
+  let moreMoneyCount = 0;
+  let moreMoneyMultiplier = 0; // Additional gold per cooked chicken from More Money upgrade
 
   const goldCountElement = document.getElementById('gold-count');
   const chickenButton = document.getElementById('chicken-button');
@@ -14,16 +63,21 @@
   const chickenCountElement = document.getElementById('chicken-count');
   const cookedChickenCountElement = document.getElementById('cooked-chicken-count');
   const chickenCooldownElement = document.getElementById('chicken-cooldown');
-  const sellCooldownElement = document.getElementById('sell-cooldown');
+  const conversionTimeElement = document.getElementById('conversion-time');
   const cooldownTextElement = document.getElementById('cooldown-text');
-  const sellCooldownTextElement = document.getElementById('sell-cooldown-text');
+  const conversionTimeTextElement = document.getElementById('conversion-time-text');
   const cookedChickenSection = document.getElementById('cooked-chicken-section');
   const gameContent = document.getElementById('game-content');
   const traderTab = document.getElementById('trader-tab');
   const farmTab = document.getElementById('farm-tab');
+  const changesTab = document.getElementById('changes-tab');
   const traderContent = document.getElementById('trader-content');
+  const changesContent = document.getElementById('changes-content');
   const reduceCooldownButton = document.getElementById('reduce-cooldown-button');
-  const reduceSellCooldownButton = document.getElementById('reduce-sell-cooldown-button');
+  const reduceConversionTimeButton = document.getElementById('reduce-conversion-time-button');
+  const moreMoneyCountElement = document.getElementById('more-money-count');
+  const moreMoneyButton = document.getElementById('more-money-button');
+  const moreMoneyTextElement = document.getElementById('more-money-text');
 
   // Function to show the game content
   function showGameContent() {
@@ -45,14 +99,32 @@
     traderContent.style.display = 'none';
   }
 
+  // Function to show the changes content
+  function showChangesContent() {
+    changesContent.style.display = 'block';
+  }
+
+  // Function to hide the changes content
+  function hideChangesContent() {
+    changesContent.style.display = 'none';
+  }
+
   traderTab.addEventListener('click', () => {
     hideGameContent();
+    hideChangesContent();
     showTraderContent();
   });
 
   farmTab.addEventListener('click', () => {
     showGameContent();
+    hideChangesContent();
     hideTraderContent();
+  });
+
+  changesTab.addEventListener('click', () => {
+    hideGameContent();
+    hideTraderContent();
+    showChangesContent();
   });
 
   chickenButton.addEventListener('click', () => {
@@ -65,26 +137,24 @@
   });
 
   convertButton.addEventListener('click', () => {
-    if (chickenCount >= 1) {
-      chickenCount--;
+    if (!isConversionCooldown) {
       cookedChickenCount++;
-      updateChickenCount();
       updateCookedChickenCount();
+      startConversionCooldown();
     }
   });
 
   sellButton.addEventListener('click', () => {
-    if (!isSellCooldown) {
-      gold += 5 * cookedChickenCount; // Earn 5 gold for each cooked chicken sold
-      cookedChickenCount = 0;
-      updateCookedChickenCount();
-      updateGoldCount();
-      startSellCooldown();
-    }
+    gold += (5 + moreMoneyMultiplier) * cookedChickenCount; // Earn gold for each cooked chicken sold
+    cookedChickenCount = 0;
+    updateCookedChickenCount();
+    updateGoldCount();
   });
 
   reduceCooldownButton.addEventListener('click', () => {
-    if (gold >= 10 && chickenClickCooldown > minCooldown) {
+    if (gold >= 10 && chickenClickCooldown > minCooldown
+
+    ) {
       gold -= 10;
       chickenClickCooldown -= 100;
       updateGoldCount();
@@ -97,16 +167,32 @@
     }
   });
 
-  reduceSellCooldownButton.addEventListener('click', () => {
-    if (gold >= 25 && sellCooldown > minCooldown) {
-      gold -= 25;
-      sellCooldown -= 100;
+  reduceConversionTimeButton.addEventListener('click', () => {
+    if (gold >= 10 && conversionCooldown > minCooldown) {
+      gold -= 10;
+      conversionCooldown -= 100;
       updateGoldCount();
-      updateSellCooldown();
+      updateConversionTime();
 
-      if (sellCooldown <= minCooldown) {
-        sellCooldownTextElement.style.display = 'none';
-        reduceSellCooldownButton.style.display = 'none';
+      if (conversionCooldown <= minCooldown) {
+        conversionTimeTextElement.style.display = 'none';
+        reduceConversionTimeButton.style.display = 'none';
+      }
+    }
+  });
+
+  moreMoneyButton.addEventListener('click', () => {
+    if (gold >= 100 && moreMoneyCount < 5) {
+      gold -= 100;
+      moreMoneyCount++;
+      moreMoneyMultiplier++;
+      updateGoldCount();
+      updateMoreMoneyCount();
+
+      if (moreMoneyCount === 5) {
+        moreMoneyButton.style.display = 'none';
+        moreMoneyCountElement.style.display = 'none';
+        moreMoneyTextElement.style.display = 'block';
       }
     }
   });
@@ -140,13 +226,13 @@
     }, chickenClickCooldown);
   }
 
-  function startSellCooldown() {
-    isSellCooldown = true;
-    sellButton.disabled = true;
+  function startConversionCooldown() {
+    isConversionCooldown = true;
+    convertButton.disabled = true;
     setTimeout(() => {
-      isSellCooldown = false;
-      sellButton.disabled = false;
-    }, sellCooldown);
+      isConversionCooldown = false;
+      convertButton.disabled = false;
+    }, conversionCooldown);
   }
 
   function showSellButton() {
@@ -155,14 +241,16 @@
 
   function updateChickenCooldown() {
     const cooldownInSeconds = chickenClickCooldown / 1000;
-    chickenCooldownElement.textContent
-
-            = cooldownInSeconds.toFixed(1);
+    chickenCooldownElement.textContent = cooldownInSeconds.toFixed(1);
   }
 
-  function updateSellCooldown() {
-    const cooldownInSeconds = sellCooldown / 1000;
-    sellCooldownElement.textContent = cooldownInSeconds.toFixed(1);
+  function updateConversionTime() {
+    const timeInSeconds = conversionCooldown / 1000;
+    conversionTimeElement.textContent = timeInSeconds.toFixed(1);
+  }
+
+  function updateMoreMoneyCount() {
+    moreMoneyCountElement.textContent = `${moreMoneyCount}/5`;
   }
 
   // Add event listeners for 'e' and 'r' key presses
@@ -174,5 +262,9 @@
     } else if (event.key === 'r') {
       cookedChickenCount++;
       updateCookedChickenCount();
+      startConversionCooldown();
     }
-  });</script>
+  });
+</script>
+</body>
+</html>
