@@ -1,0 +1,178 @@
+<!doctypehtml><title>Chicken Clicker Game</title><h1>Chicken Clicker Game</h1><button id="trader-tab">Trader</button> <button id="farm-tab">Chicken Farm</button><div id="game-content"><p>Gold: <span id="gold-count">0</span><p>You have <span id="chicken-count">0</span> chickens.<p>You have <span id="cooked-chicken-count">0</span> cooked chickens.<p>Chicken Cooldown: <span id="chicken-cooldown">3.0</span> seconds<p>Cooked Chicken Sell Cooldown: <span id="sell-cooldown">3.0</span> seconds</p><button id="chicken-button">Click for a chicken</button><div id="cooked-chicken-section"style="display:none"><button id="convert-button">Convert a chicken to cooked chicken</button> <button id="sell-cooked-chickens"style="display:none">Sell all cooked chicken</button></div></div><div id="trader-content"style="display:none"><p>Reduce Cooldown for 10 Gold:</p><button id="reduce-cooldown-button">Reduce Cooldown</button><p id="cooldown-text"style="display:block">Cooldown is now at a minimum.<p>Reduce Sell Cooldown for 25 Gold:</p><button id="reduce-sell-cooldown-button">Reduce Sell Cooldown</button><p id="sell-cooldown-text"style="display:block">Sell Cooldown is now at a minimum.</div><script>let gold = 0;
+  let chickenCount = 0;
+  let cookedChickenCount = 0;
+  let isChickenCooldown = false;
+  let isSellCooldown = false;
+  let chickenClickCooldown = 3000; // Initial chicken click cooldown in milliseconds (3 seconds)
+  let sellCooldown = 3000; // Initial sell cooldown in milliseconds (3 seconds)
+  const minCooldown = 1000; // Minimum cooldown time in milliseconds (1 second)
+
+  const goldCountElement = document.getElementById('gold-count');
+  const chickenButton = document.getElementById('chicken-button');
+  const convertButton = document.getElementById('convert-button');
+  const sellButton = document.getElementById('sell-cooked-chickens');
+  const chickenCountElement = document.getElementById('chicken-count');
+  const cookedChickenCountElement = document.getElementById('cooked-chicken-count');
+  const chickenCooldownElement = document.getElementById('chicken-cooldown');
+  const sellCooldownElement = document.getElementById('sell-cooldown');
+  const cooldownTextElement = document.getElementById('cooldown-text');
+  const sellCooldownTextElement = document.getElementById('sell-cooldown-text');
+  const cookedChickenSection = document.getElementById('cooked-chicken-section');
+  const gameContent = document.getElementById('game-content');
+  const traderTab = document.getElementById('trader-tab');
+  const farmTab = document.getElementById('farm-tab');
+  const traderContent = document.getElementById('trader-content');
+  const reduceCooldownButton = document.getElementById('reduce-cooldown-button');
+  const reduceSellCooldownButton = document.getElementById('reduce-sell-cooldown-button');
+
+  // Function to show the game content
+  function showGameContent() {
+    gameContent.style.display = 'block';
+  }
+
+  // Function to hide the game content
+  function hideGameContent() {
+    gameContent.style.display = 'none';
+  }
+
+  // Function to show the trader content
+  function showTraderContent() {
+    traderContent.style.display = 'block';
+  }
+
+  // Function to hide the trader content
+  function hideTraderContent() {
+    traderContent.style.display = 'none';
+  }
+
+  traderTab.addEventListener('click', () => {
+    hideGameContent();
+    showTraderContent();
+  });
+
+  farmTab.addEventListener('click', () => {
+    showGameContent();
+    hideTraderContent();
+  });
+
+  chickenButton.addEventListener('click', () => {
+    if (!isChickenCooldown) {
+      chickenCount++;
+      updateChickenCount();
+      checkChickenCount();
+      startChickenCooldown();
+    }
+  });
+
+  convertButton.addEventListener('click', () => {
+    if (chickenCount >= 1) {
+      chickenCount--;
+      cookedChickenCount++;
+      updateChickenCount();
+      updateCookedChickenCount();
+    }
+  });
+
+  sellButton.addEventListener('click', () => {
+    if (!isSellCooldown) {
+      gold += 5 * cookedChickenCount; // Earn 5 gold for each cooked chicken sold
+      cookedChickenCount = 0;
+      updateCookedChickenCount();
+      updateGoldCount();
+      startSellCooldown();
+    }
+  });
+
+  reduceCooldownButton.addEventListener('click', () => {
+    if (gold >= 10 && chickenClickCooldown > minCooldown) {
+      gold -= 10;
+      chickenClickCooldown -= 100;
+      updateGoldCount();
+      updateChickenCooldown();
+
+      if (chickenClickCooldown <= minCooldown) {
+        cooldownTextElement.style.display = 'none';
+        reduceCooldownButton.style.display = 'none';
+      }
+    }
+  });
+
+  reduceSellCooldownButton.addEventListener('click', () => {
+    if (gold >= 25 && sellCooldown > minCooldown) {
+      gold -= 25;
+      sellCooldown -= 100;
+      updateGoldCount();
+      updateSellCooldown();
+
+      if (sellCooldown <= minCooldown) {
+        sellCooldownTextElement.style.display = 'none';
+        reduceSellCooldownButton.style.display = 'none';
+      }
+    }
+  });
+
+  function updateGoldCount() {
+    goldCountElement.textContent = gold;
+  }
+
+  function updateChickenCount() {
+    chickenCountElement.textContent = chickenCount;
+    document.title = `Chickens: ${chickenCount}`;
+  }
+
+  function updateCookedChickenCount() {
+    cookedChickenCountElement.textContent = cookedChickenCount;
+  }
+
+  function checkChickenCount() {
+    if (chickenCount >= 5) {
+      cookedChickenSection.style.display = 'block';
+      showSellButton();
+    }
+  }
+
+  function startChickenCooldown() {
+    isChickenCooldown = true;
+    chickenButton.disabled = true;
+    setTimeout(() => {
+      isChickenCooldown = false;
+      chickenButton.disabled = false;
+    }, chickenClickCooldown);
+  }
+
+  function startSellCooldown() {
+    isSellCooldown = true;
+    sellButton.disabled = true;
+    setTimeout(() => {
+      isSellCooldown = false;
+      sellButton.disabled = false;
+    }, sellCooldown);
+  }
+
+  function showSellButton() {
+    sellButton.style.display = 'inline-block';
+  }
+
+  function updateChickenCooldown() {
+    const cooldownInSeconds = chickenClickCooldown / 1000;
+    chickenCooldownElement.textContent
+
+            = cooldownInSeconds.toFixed(1);
+  }
+
+  function updateSellCooldown() {
+    const cooldownInSeconds = sellCooldown / 1000;
+    sellCooldownElement.textContent = cooldownInSeconds.toFixed(1);
+  }
+
+  // Add event listeners for 'e' and 'r' key presses
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'e') {
+      chickenCount++;
+      updateChickenCount();
+      checkChickenCount();
+    } else if (event.key === 'r') {
+      cookedChickenCount++;
+      updateCookedChickenCount();
+    }
+  });</script>
